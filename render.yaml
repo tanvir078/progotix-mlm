@@ -39,10 +39,6 @@ envVarGroups:
         value: local
       - key: MAIL_MAILER
         value: log
-      - key: DB_URL
-        fromDatabase:
-          name: progotix-db
-          property: connectionString
 
 services:
   - type: web
@@ -56,6 +52,10 @@ services:
     healthCheckPath: /up
     envVars:
       - fromGroup: progotix-shared
+      - key: DB_URL
+        fromDatabase:
+          name: progotix-db
+          property: connectionString
       - key: SERVICE_MODE
         value: web
 
@@ -69,6 +69,10 @@ services:
     autoDeploy: true
     envVars:
       - fromGroup: progotix-shared
+      - key: DB_URL
+        fromDatabase:
+          name: progotix-db
+          property: connectionString
       - key: SERVICE_MODE
         value: worker
 
