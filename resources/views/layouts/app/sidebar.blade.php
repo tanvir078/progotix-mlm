@@ -15,18 +15,58 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="user-group" :href="route('mlm.network')" :current="request()->routeIs('mlm.network')" wire:navigate>
+                        {{ __('Referral Network') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="cube" :href="route('mlm.plans.index')" :current="request()->routeIs('mlm.plans.*')" wire:navigate>
+                        {{ __('Packages') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="banknotes" :href="route('mlm.earnings')" :current="request()->routeIs('mlm.earnings')" wire:navigate>
+                        {{ __('Earnings') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="squares-2x2" :href="route('mlm.binary-tree')" :current="request()->routeIs('mlm.binary-tree')" wire:navigate>
+                        {{ __('Binary Tree') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="arrows-right-left" :href="route('mlm.withdrawals.index')" :current="request()->routeIs('mlm.withdrawals.*')" wire:navigate>
+                        {{ __('Withdrawals') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-text" :href="route('mlm.invoices')" :current="request()->routeIs('mlm.invoices')" wire:navigate>
+                        {{ __('Invoices') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                @if (auth()->user()->is_admin)
+                    <flux:sidebar.group :heading="__('Admin')" class="grid">
+                        <flux:sidebar.item icon="shield-check" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
+                            {{ __('Admin Dashboard') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="users" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>
+                            {{ __('Members') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="cube" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
+                            {{ __('Plan CRUD') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="squares-plus" :href="route('admin.binary-tree')" :current="request()->routeIs('admin.binary-tree')" wire:navigate>
+                            {{ __('Tree Manager') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="credit-card" :href="route('admin.withdrawals')" :current="request()->routeIs('admin.withdrawals*')" wire:navigate>
+                            {{ __('Withdrawal Queue') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="document-duplicate" :href="route('admin.invoices')" :current="request()->routeIs('admin.invoices')" wire:navigate>
+                            {{ __('Invoices') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="presentation-chart-line" :href="route('admin.reports')" :current="request()->routeIs('admin.reports')" wire:navigate>
+                            {{ __('Reports') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endif
             </flux:sidebar.nav>
 
             <flux:spacer />
 
             <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
+                <flux:sidebar.item icon="link" :href="auth()->user()->referral_link">
+                    {{ __('My Referral Link') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
@@ -65,6 +105,11 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
+                        @if (auth()->user()->is_admin)
+                            <flux:menu.item :href="route('admin.dashboard')" icon="shield-check" wire:navigate>
+                                {{ __('Admin Panel') }}
+                            </flux:menu.item>
+                        @endif
                         <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                             {{ __('Settings') }}
                         </flux:menu.item>

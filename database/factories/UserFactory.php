@@ -24,12 +24,21 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $username = fake()->unique()->userName();
+
         return [
             'name' => fake()->name(),
+            'username' => Str::lower($username),
+            'member_code' => 'PGX-'.Str::upper(fake()->unique()->bothify('####???')),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'referrer_id' => null,
+            'binary_parent_id' => null,
+            'binary_position' => null,
+            'balance' => fake()->randomFloat(2, 0, 5000),
+            'is_admin' => false,
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,

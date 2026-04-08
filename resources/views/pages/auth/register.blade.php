@@ -1,59 +1,124 @@
+<?php
+
+use App\Models\User;
+use App\Services\BinaryTreeService;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
+use Livewire\Attributes\Layout;
+use Livewire\Volt\Component;
+
+new #[Layout('components.layouts.auth')] class extends Component
+{
+    public string $name = '';
+    public string $username = '';
+    public string $email = '';
+    public string $ref = '';
+    public string $password = '';
+    public string $password_confirmation = '';
+
+    public function mount()
+    {
+        // লিংকে যদি ?ref=admin থাকে তবে সেটি অটোমেটিক বক্সে বসে যাবে
+        $this->ref = request()->query('ref', '');
+    }
+
+    public function register(): void
+    {
+        $this->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'lowercase', 'alpha_dash', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
+            'ref' => ['nullable', 'string', 'exists:users,username'],
+            'password' => ['required', 'string', 'confirmed', Password::defaults()],
+        ]);
+
+        $referrer = null;
+        if ($this->ref) {
+            $referrer = User::where('username', $this->ref)->first();
+        }
+
+        $user = User::create([
+            'name' => $this->name,
+            'username' => $this->username,
+            'email' => $this->email,
+            'password' => Hash::make($this->password),
+            'referrer_id' => $referrer ? $referrer->id : null,
+            'balance' => 0,
+        ]);
+
+        app(BinaryTreeService::class)->placeUser($user, $referrer);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        $this->redirect(route('dashboard', absolute: false), navigate: true);
+    }
+}; ?>
+
 <x-layouts::auth :title="__('Register')">
     <div class="flex flex-col gap-6">
         <x-auth-header :title="__('Create an account')" :description="__('Enter your details below to create your account')" />
 
-        <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
+        <form wire:submit="register" class="flex flex-col gap-6">
             @csrf
-            <!-- Name -->
+
             <flux:input
-                name="name"
-                :label="__('Name')"
-                :value="old('name')"
+                wire:model="name"
+                :label="__('Full Name')"
                 type="text"
                 required
                 autofocus
-                autocomplete="name"
-                :placeholder="__('Full name')"
+                :placeholder="__('Enter your full name')"
             />
 
-            <!-- Email Address -->
             <flux:input
-                name="email"
+                wire:model="username"
+                :label="__('Username')"
+                type="text"
+                required
+                :placeholder="__('Choose a unique username')"
+            />
+
+            <flux:input
+                wire:model="email"
                 :label="__('Email address')"
-                :value="old('email')"
                 type="email"
                 required
-                autocomplete="email"
                 placeholder="email@example.com"
             />
 
-            <!-- Password -->
             <flux:input
-                name="password"
+                wire:model="ref"
+                :label="__('Referral Username (Optional)')"
+                type="text"
+                :placeholder="__('Enter referral username')"
+            />
+
+            <flux:input
+                wire:model="password"
                 :label="__('Password')"
                 type="password"
                 required
-                autocomplete="new-password"
                 :placeholder="__('Password')"
                 viewable
             />
 
-            <!-- Confirm Password -->
             <flux:input
-                name="password_confirmation"
+                wire:model="password_confirmation"
                 :label="__('Confirm password')"
                 type="password"
                 required
-                autocomplete="new-password"
                 :placeholder="__('Confirm password')"
                 viewable
             />
 
             <div class="flex items-center justify-end">
-                <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
+                <flux:button type="submit" variant="primary" class="w-full">
                     {{ __('Create account') }}
                 </flux:button>
             </div>
