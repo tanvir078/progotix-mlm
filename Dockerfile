@@ -1,26 +1,28 @@
-FROM php:8.3-cli-alpine
+FROM php:8.3-cli
 
 WORKDIR /app
 
-RUN apk add --no-cache \
-    bash \
-    curl \
-    curl-dev \
-    git \
-    icu-dev \
-    libxml2-dev \
-    libpq-dev \
-    libzip-dev \
-    linux-headers \
-    nodejs \
-    npm \
-    oniguruma-dev \
-    unzip \
-    zip \
-    && docker-php-ext-install bcmath curl dom intl mbstring pcntl pdo_pgsql simplexml xml zip \
-    && rm -rf /var/cache/apk/*
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        bash \
+        curl \
+        git \
+        libicu-dev \
+        libonig-dev \
+        libpq-dev \
+        libxml2-dev \
+        libzip-dev \
+        nodejs \
+        npm \
+        unzip \
+        zip \
+    && docker-php-ext-install bcmath intl mbstring pcntl pdo_pgsql xml zip \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV COMPOSER_MEMORY_LIMIT=-1
 
 COPY composer.json composer.lock ./
 RUN composer install \
@@ -31,8 +33,8 @@ RUN composer install \
     --prefer-dist \
     --optimize-autoloader
 
-COPY package.json package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+COPY package.json ./
+RUN npm install
 
 COPY . .
 
