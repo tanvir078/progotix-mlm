@@ -5,16 +5,19 @@ WORKDIR /app
 RUN apk add --no-cache \
     bash \
     curl \
+    curl-dev \
     git \
     icu-dev \
+    libxml2-dev \
     libpq-dev \
+    libzip-dev \
     linux-headers \
     nodejs \
     npm \
     oniguruma-dev \
     unzip \
     zip \
-    && docker-php-ext-install bcmath intl pcntl pdo_pgsql \
+    && docker-php-ext-install bcmath curl dom intl mbstring pcntl pdo_pgsql simplexml xml zip \
     && rm -rf /var/cache/apk/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
