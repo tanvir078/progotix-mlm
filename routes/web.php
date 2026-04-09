@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminBinaryTreeController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\CommissionRuleManagementController;
 use App\Http\Controllers\Admin\DepositManagementController;
 use App\Http\Controllers\Admin\DepositProofController;
 use App\Http\Controllers\Admin\DocumentManagementController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Admin\PayoutExportController;
 use App\Http\Controllers\Admin\PlanManagementController;
 use App\Http\Controllers\Admin\ProductManagementController;
 use App\Http\Controllers\Admin\RankManagementController;
+use App\Http\Controllers\Admin\RefundManagementController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\WithdrawalManagementController;
 use App\Http\Controllers\BinaryTreeController;
@@ -92,8 +94,11 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::delete('ranks/{rank}', [RankManagementController::class, 'destroy'])->name('ranks.destroy');
     Route::get('documents', [DocumentManagementController::class, 'index'])->name('documents');
     Route::patch('documents/{document}', [DocumentManagementController::class, 'update'])->name('documents.update');
-    Route::get('commission-rules', \App\Livewire\Admin\CommissionRules::class)->name('commission-rules');
-    Route::view('refunds', 'admin.refunds')->name('refunds');
+    Route::get('commission-rules', [CommissionRuleManagementController::class, 'index'])->name('commission-rules');
+    Route::patch('commission-rules', [CommissionRuleManagementController::class, 'update'])->name('commission-rules.update');
+    Route::get('refunds', [RefundManagementController::class, 'index'])->name('refunds');
+    Route::post('refunds', [RefundManagementController::class, 'store'])->name('refunds.store');
+    Route::patch('refunds/{refundRequest}', [RefundManagementController::class, 'update'])->name('refunds.update');
     Route::get('reports', ReportController::class)->name('reports');
 
 });

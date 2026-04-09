@@ -7,6 +7,16 @@ use Illuminate\Validation\Rule;
 
 trait ProfileValidationRules
 {
+    protected function countryCodes(): array
+    {
+        return collect(config('countries.list'))->pluck('code')->all();
+    }
+
+    protected function dialCodes(): array
+    {
+        return collect(config('countries.list'))->pluck('dial_code')->unique()->values()->all();
+    }
+
     /**
      * Get the validation rules used to validate user profiles.
      *
@@ -17,6 +27,14 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'country_code' => ['required', 'string', Rule::in($this->countryCodes())],
+            'phone_code' => ['required', 'string', Rule::in($this->dialCodes())],
+            'phone_number' => ['required', 'string', 'max:25'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'profession' => ['nullable', 'string', 'max:120'],
+            'company_name' => ['nullable', 'string', 'max:120'],
+            'profile_headline' => ['nullable', 'string', 'max:160'],
+            'bio' => ['nullable', 'string', 'max:1000'],
         ];
     }
 

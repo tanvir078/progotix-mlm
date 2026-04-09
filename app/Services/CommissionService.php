@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 class CommissionService
 {
     public function __construct(
+        private readonly CommissionRuleService $commissionRuleService,
         private readonly CommissionLedgerService $commissionLedgerService,
     ) {}
 
@@ -117,19 +118,27 @@ class CommissionService
         }
     }
 
-    public function reverseRetailOrderCommissions(MlmOrder $order, User $buyer): void
+    public function reverseRetailOrderCommissions(
+        MlmOrder $order,
+        User $buyer,
+        ?int $refundRequestId = null,
+    ): float
     {
         $cycle = max(1, (int) $order->commission_cycle);
+        $reversedAmount = 0.0;
 
         if ((float) $order->commission_amount > 0) {
-            $this->commissionLedgerService->reverseCredit(
+            $transaction = $this->commissionLedgerService->reverseCredit(
                 $buyer,
                 $this->orderReference($order, $cycle, 'retail', $buyer),
                 $this->orderReversalReference($order, $cycle, 'retail', $buyer),
                 MlmTransaction::TYPE_RETAIL_COMMISSION_REVERSAL,
                 'Retail commission reversal',
                 $this->orderNote($order, 'commission reversed after order cancellation.'),
+                $refundRequestId,
             );
+
+            $reversedAmount += (float) ($transaction?->amount ?? 0);
         }
 
         $uplineChain = $this->lockedReferralChain($buyer->referrer_id, count($this->retailTeamDistribution()));
@@ -142,36 +151,47 @@ class CommissionService
                 continue;
             }
 
-            $this->commissionLedgerService->reverseCredit(
+            $transaction = $this->commissionLedgerService->reverseCredit(
                 $earner,
                 $this->orderReference($order, $cycle, 'team', $earner, $level),
                 $this->orderReversalReference($order, $cycle, 'team', $earner, $level),
                 MlmTransaction::TYPE_TEAM_SALES_BONUS_REVERSAL,
                 'Team sales bonus reversal',
                 $buyer->name." order was cancelled after payment confirmation on level {$level}.",
+                $refundRequestId,
             );
+
+            $reversedAmount += (float) ($transaction?->amount ?? 0);
         }
+
+        return $reversedAmount;
     }
 
-    public function reverseSubscriptionBonuses(User $member, MlmSubscription $subscription): void
+    public function reverseSubscriptionBonuses(
+        User $member,
+        MlmSubscription $subscription,
+        ?int $refundRequestId = null,
+    ): float
     {
         $uplineChain = $this->lockedReferralChain($member->referrer_id, 11);
         $directSponsor = $uplineChain->first();
+        $reversedAmount = 0.0;
 
-        // Reverse direct bonus
         if ($directSponsor) {
             $directRef = $this->subscriptionReference($subscription, 'direct', $directSponsor);
-            $this->commissionLedgerService->reverseCredit(
+            $transaction = $this->commissionLedgerService->reverseCredit(
                 $directSponsor,
                 $directRef,
-                $directRef . ':reversal',
-                'direct_bonus_reversal',
+                $directRef.':reversal',
+                MlmTransaction::TYPE_DIRECT_BONUS_REVERSAL,
                 'Direct referral commission reversal',
-                "{$member->name} subscription #{$subscription->id} was cancelled/refunded."
+                "{$member->name} subscription #{$subscription->id} was cancelled/refunded.",
+                $refundRequestId,
             );
+
+            $reversedAmount += (float) ($transaction?->amount ?? 0);
         }
 
-        // Reverse level bonuses
         $teamDistribution = $this->subscriptionLevelDistribution();
 
         foreach ($teamDistribution as $level => $ratio) {
@@ -183,15 +203,20 @@ class CommissionService
             }
 
             $levelRef = $this->subscriptionReference($subscription, 'level', $earner, $level);
-            $this->commissionLedgerService->reverseCredit(
+            $transaction = $this->commissionLedgerService->reverseCredit(
                 $earner,
                 $levelRef,
-                $levelRef . ':reversal',
-                'level_bonus_reversal',
+                $levelRef.':reversal',
+                MlmTransaction::TYPE_LEVEL_BONUS_REVERSAL,
                 "Level {$level} commission reversal",
-                "{$member->name} subscription #{$subscription->id} generated reversal on level {$level}."
+                "{$member->name} subscription #{$subscription->id} generated reversal on level {$level}.",
+                $refundRequestId,
             );
+
+            $reversedAmount += (float) ($transaction?->amount ?? 0);
         }
+
+        return $reversedAmount;
     }
 
     /**
@@ -224,10 +249,7 @@ class CommissionService
      */
     private function subscriptionLevelDistribution(): array
     {
-        return collect(config('mlm.commission.subscription.level_distribution', []))
-            ->mapWithKeys(fn (float|int|string $ratio, int|string $level): array => [(int) $level => (float) $ratio])
-            ->sortKeys()
-            ->all();
+        return $this->commissionRuleService->subscriptionLevelDistribution();
     }
 
     /**
@@ -235,10 +257,7 @@ class CommissionService
      */
     private function retailTeamDistribution(): array
     {
-        return collect(config('mlm.commission.retail.team_distribution', [1 => 1.0]))
-            ->mapWithKeys(fn (float|int|string $ratio, int|string $level): array => [(int) $level => (float) $ratio])
-            ->sortKeys()
-            ->all();
+        return $this->commissionRuleService->retailTeamDistribution();
     }
 
     private function subscriptionReference(

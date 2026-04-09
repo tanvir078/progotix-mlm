@@ -20,9 +20,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'total_bv',
     'notes',
     'refund_requested_at',
+    'refunded_at',
+    'refunded_by',
+    'refund_note',
     'placed_at',
     'paid_at',
-]
+])]
 class MlmOrder extends Model
 {
     public const STATUS_PAID = 'paid';
@@ -30,6 +33,8 @@ class MlmOrder extends Model
     public const STATUS_PENDING = 'pending';
 
     public const STATUS_CANCELLED = 'cancelled';
+
+    public const STATUS_REFUNDED = 'refunded';
 
     public function casts(): array
     {
@@ -39,6 +44,8 @@ class MlmOrder extends Model
             'team_bonus_amount' => 'decimal:2',
             'commission_cycle' => 'integer',
             'total_bv' => 'decimal:2',
+            'refund_requested_at' => 'datetime',
+            'refunded_at' => 'datetime',
             'placed_at' => 'datetime',
             'paid_at' => 'datetime',
         ];
@@ -57,5 +64,15 @@ class MlmOrder extends Model
     public function invoice(): HasOne
     {
         return $this->hasOne(MlmInvoice::class, 'order_id');
+    }
+
+    public function refundedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'refunded_by');
+    }
+
+    public function refundRequests(): HasMany
+    {
+        return $this->hasMany(MlmRefundRequest::class, 'order_id');
     }
 }

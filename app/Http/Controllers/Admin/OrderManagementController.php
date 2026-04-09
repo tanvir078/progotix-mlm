@@ -62,18 +62,11 @@ class OrderManagementController extends Controller
 
     public function update(UpdateOrderStatusRequest $request, MlmOrder $order): RedirectResponse
     {
-        $oldStatus = $order->status;
         $this->orderWorkflowService->transition(
             $order,
             $request->status(),
             $request->notes(),
         );
-
-        // Trigger commission reversal if moving to cancelled/refunded from paid
-        if (in_array($request->status(), [MlmOrder::STATUS_CANCELLED, 'refunded']) &&
-            $oldStatus === MlmOrder::STATUS_PAID) {
-            app(\App\Services\CommissionService::class)->reverseRetailOrderCommissions($order, $order->user);
-        }
 
         return back()->with('status', 'Order updated successfully.');
     }

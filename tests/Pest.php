@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\MlmPaymentMethod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +45,25 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function paymentMethod(array $attributes = []): MlmPaymentMethod
 {
-    // ..
+    return MlmPaymentMethod::query()->create(array_merge([
+        'name' => 'Global Wallet',
+        'code' => 'GLOBAL_WALLET',
+        'type' => MlmPaymentMethod::TYPE_E_WALLET,
+        'country_code' => null,
+        'currency_code' => 'USD',
+        'provider_name' => 'Manual Review',
+        'destination_label' => 'Wallet ID',
+        'destination_value' => 'WALLET-100',
+        'instructions' => 'Submit the transfer reference after sending funds.',
+        'min_amount' => 10,
+        'max_amount' => 5000,
+        'fixed_charge' => 0,
+        'percent_charge_rate' => 0,
+        'supports_deposit' => true,
+        'supports_withdrawal' => true,
+        'is_active' => true,
+        'sort_order' => 1,
+    ], $attributes));
 }

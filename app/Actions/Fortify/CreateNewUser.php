@@ -5,9 +5,9 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
-use App\Services\BinaryTreeService;
-use Illuminate\Validation\Rule;
+use App\Services\MemberRegistrationService;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -15,9 +15,8 @@ class CreateNewUser implements CreatesNewUsers
     use PasswordValidationRules, ProfileValidationRules;
 
     public function __construct(
-        private readonly BinaryTreeService $binaryTreeService,
-    ) {
-    }
+        private readonly MemberRegistrationService $memberRegistrationService,
+    ) {}
 
     /**
      * Validate and create a newly registered user.
@@ -29,29 +28,17 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'username' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique(User::class, 'username')],
-            'ref' => ['nullable', 'string', Rule::exists(User::class, 'username')],
+            'ref' => ['required', 'string', Rule::exists(User::class, 'username')],
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $referrerId = null;
+        $sponsor = User::query()
+            ->where('username', $input['ref'])
+            ->firstOrFail();
 
-        if (! empty($input['ref'])) {
-            $referrerId = User::query()
-                ->where('username', $input['ref'])
-                ->value('id');
-        }
-
-        $user = User::create([
-            'name' => $input['name'],
-            'username' => $input['username'],
-            'email' => $input['email'],
-            'password' => $input['password'],
-            'referrer_id' => $referrerId,
-            'balance' => 0,
-        ]);
-
-        $this->binaryTreeService->placeUser($user, $user->referrer);
-
-        return $user;
+        return $this->memberRegistrationService->registerUnderSponsor(
+            $input,
+            $sponsor,
+        );
     }
 }

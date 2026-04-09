@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'user_id',
+    'payment_method_id',
     'amount',
     'payment_method',
     'account_details',
@@ -36,6 +37,11 @@ class MlmWithdrawalRequest extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(MlmPaymentMethod::class, 'payment_method_id');
     }
 
     public function processor(): BelongsTo

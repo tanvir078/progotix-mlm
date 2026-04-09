@@ -7,14 +7,32 @@ use SplQueue;
 
 class BinaryTreeService
 {
-    public function placeUser(User $user, ?User $sponsor = null): void
+    public function placeUser(User $user, ?User $sponsor = null, string $preferredPosition = 'auto'): void
     {
         if ($user->binary_parent_id || ! $sponsor) {
             return;
         }
 
-        $queue = new SplQueue();
-        $queue->enqueue($sponsor->fresh());
+        $queue = new SplQueue;
+        $sponsor = $sponsor->fresh();
+        $sponsor->loadMissing('binaryChildren');
+
+        if (in_array($preferredPosition, [User::BINARY_LEFT, User::BINARY_RIGHT], true)) {
+            $preferredChild = $sponsor->binaryChildren->firstWhere('binary_position', $preferredPosition);
+
+            if (! $preferredChild) {
+                $user->forceFill([
+                    'binary_parent_id' => $sponsor->id,
+                    'binary_position' => $preferredPosition,
+                ])->save();
+
+                return;
+            }
+
+            $queue->enqueue($preferredChild->fresh());
+        }
+
+        $queue->enqueue($sponsor);
 
         while (! $queue->isEmpty()) {
             /** @var User $candidate */
@@ -40,6 +58,13 @@ class BinaryTreeService
                 ])->save();
 
                 return;
+            }
+
+            if ($preferredPosition === User::BINARY_RIGHT) {
+                $queue->enqueue($rightChild);
+                $queue->enqueue($leftChild);
+
+                continue;
             }
 
             $queue->enqueue($leftChild);

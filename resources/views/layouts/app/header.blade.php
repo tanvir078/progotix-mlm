@@ -3,28 +3,27 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    @php
+        $brand = config('mlm.brand');
+        $memberNavigation = config('mlm.navigation.member');
+        $adminNavigation = config('mlm.navigation.admin');
+    @endphp
+    <body class="app-shell min-h-screen">
+        <flux:header container class="app-topbar border-b">
             <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
 
             <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
 
+            <div class="ms-3 hidden xl:block">
+                <p class="app-brand-badge">{{ $brand['tagline'] }}</p>
+            </div>
+
             <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
-                </flux:navbar.item>
-                <flux:navbar.item icon="user-group" :href="route('mlm.network')" :current="request()->routeIs('mlm.network')" wire:navigate>
-                    {{ __('Network') }}
-                </flux:navbar.item>
-                <flux:navbar.item icon="cube" :href="route('mlm.plans.index')" :current="request()->routeIs('mlm.plans.*')" wire:navigate>
-                    {{ __('Packages') }}
-                </flux:navbar.item>
-                <flux:navbar.item icon="banknotes" :href="route('mlm.earnings')" :current="request()->routeIs('mlm.earnings')" wire:navigate>
-                    {{ __('Earnings') }}
-                </flux:navbar.item>
-                <flux:navbar.item icon="squares-2x2" :href="route('mlm.binary-tree')" :current="request()->routeIs('mlm.binary-tree')" wire:navigate>
-                    {{ __('Tree') }}
-                </flux:navbar.item>
+                @foreach ($memberNavigation as $item)
+                    <flux:navbar.item :icon="$item['icon']" :href="route($item['route'])" :current="request()->routeIs($item['pattern'])" wire:navigate>
+                        {{ __($item['short_label']) }}
+                    </flux:navbar.item>
+                @endforeach
                 @if (auth()->user()->is_admin)
                     <flux:navbar.item icon="shield-check" :href="route('admin.dashboard')" :current="request()->routeIs('admin.*')" wire:navigate>
                         {{ __('Admin') }}
@@ -49,60 +48,34 @@
         </flux:header>
 
         <!-- Mobile Menu -->
-        <flux:sidebar collapsible="mobile" sticky class="lg:hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar collapsible="mobile" sticky class="app-sidebar lg:hidden border-e">
             <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
+                <div class="space-y-3">
+                    <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
+                    <div class="rounded-2xl border border-white/10 bg-white/60 p-3 text-sm shadow-sm dark:bg-zinc-900/70">
+                        <p class="app-brand-badge">{{ $brand['name'] }}</p>
+                        <p class="mt-3 font-semibold text-zinc-900 dark:text-white">{{ $brand['tagline'] }}</p>
+                    </div>
+                </div>
                 <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')">
-                    <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard')  }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="user-group" :href="route('mlm.network')" :current="request()->routeIs('mlm.network')" wire:navigate>
-                        {{ __('Network') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="cube" :href="route('mlm.plans.index')" :current="request()->routeIs('mlm.plans.*')" wire:navigate>
-                        {{ __('Packages') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="banknotes" :href="route('mlm.earnings')" :current="request()->routeIs('mlm.earnings')" wire:navigate>
-                        {{ __('Earnings') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="squares-2x2" :href="route('mlm.binary-tree')" :current="request()->routeIs('mlm.binary-tree')" wire:navigate>
-                        {{ __('Tree') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="arrows-right-left" :href="route('mlm.withdrawals.index')" :current="request()->routeIs('mlm.withdrawals.*')" wire:navigate>
-                        {{ __('Withdrawals') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-text" :href="route('mlm.invoices')" :current="request()->routeIs('mlm.invoices')" wire:navigate>
-                        {{ __('Invoices') }}
-                    </flux:sidebar.item>
+                    @foreach ($memberNavigation as $item)
+                        <flux:sidebar.item :icon="$item['icon']" :href="route($item['route'])" :current="request()->routeIs($item['pattern'])" wire:navigate>
+                            {{ __($item['label']) }}
+                        </flux:sidebar.item>
+                    @endforeach
                 </flux:sidebar.group>
 
                 @if (auth()->user()->is_admin)
                     <flux:sidebar.group :heading="__('Admin')">
-                        <flux:sidebar.item icon="shield-check" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
-                            {{ __('Admin Dashboard') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="users" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>
-                            {{ __('Members') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="cube" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
-                            {{ __('Plan CRUD') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="squares-plus" :href="route('admin.binary-tree')" :current="request()->routeIs('admin.binary-tree')" wire:navigate>
-                            {{ __('Tree Manager') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="credit-card" :href="route('admin.withdrawals')" :current="request()->routeIs('admin.withdrawals*')" wire:navigate>
-                            {{ __('Withdrawal Queue') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="document-duplicate" :href="route('admin.invoices')" :current="request()->routeIs('admin.invoices')" wire:navigate>
-                            {{ __('Invoices') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="presentation-chart-line" :href="route('admin.reports')" :current="request()->routeIs('admin.reports')" wire:navigate>
-                            {{ __('Reports') }}
-                        </flux:sidebar.item>
+                        @foreach ($adminNavigation as $item)
+                            <flux:sidebar.item :icon="$item['icon']" :href="route($item['route'])" :current="request()->routeIs($item['pattern'])" wire:navigate>
+                                {{ __($item['label']) }}
+                            </flux:sidebar.item>
+                        @endforeach
                     </flux:sidebar.group>
                 @endif
             </flux:sidebar.nav>
@@ -117,6 +90,8 @@
         </flux:sidebar>
 
         {{ $slot }}
+
+        <x-mobile-bottom-nav />
 
         @persist('toast')
             <flux:toast.group>

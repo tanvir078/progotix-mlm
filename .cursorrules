@@ -1,0 +1,78 @@
+# Cursor AI Agent Configuration
+
+This project uses AgentKit for AI agent management.
+
+## Agent Files Location
+
+Agent files are organized in: `Agent/`
+
+## Usage with Cursor
+
+### Method 1: @-mentions (Recommended)
+
+Use @-mentions to reference specific agents:
+
+```
+@Agent/engineering/backend-architect.md Design a REST API
+```
+
+### Method 2: Natural Language
+
+Reference agents naturally in your prompts:
+
+```
+"Following the backend-architect guidelines in Agent/engineering/..."
+```
+
+## Available Agents
+
+- design/brand-guardian
+- design/ui-designer
+- design/ux-researcher
+- design/visual-storyteller
+- design/whimsy-injector
+- engineering/ai-engineer
+- engineering/backend-architect
+- engineering/devops-automator
+- engineering/frontend-developer
+- engineering/mobile-app-builder
+- engineering/rapid-prototyper
+- engineering/test-writer-fixer
+- marketing/app-store-optimizer
+- marketing/content-creator
+- marketing/growth-hacker
+- marketing/instagram-curator
+- marketing/reddit-community-builder
+- marketing/tiktok-strategist
+- marketing/twitter-engager
+- product/feedback-synthesizer
+- product/sprint-prioritizer
+- product/trend-researcher
+- project-management/experiment-tracker
+- project-management/project-shipper
+- project-management/studio-producer
+- studio-operations/analytics-reporter
+- studio-operations/finance-tracker
+- studio-operations/infrastructure-maintainer
+- studio-operations/legal-compliance-checker
+- studio-operations/support-responder
+- testing/api-tester
+- testing/performance-benchmarker
+- testing/test-results-analyzer
+- testing/tool-evaluator
+- testing/workflow-optimizer
+
+## General Guidelines
+
+When working on this project:
+
+1. **Architecture**: Follow the patterns defined in the engineering agents
+2. **Design**: Maintain consistency with design system agents
+3. **Testing**: Ensure comprehensive test coverage
+4. **Documentation**: Keep documentation up-to-date
+
+
+
+---
+
+For detailed agent instructions, see individual files in `Agent/`

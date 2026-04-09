@@ -17,6 +17,14 @@ test('profile information can be updated', function () {
     $response = Livewire::test('pages::settings.profile')
         ->set('name', 'Test User')
         ->set('email', 'test@example.com')
+        ->set('country_code', 'AE')
+        ->set('phone_code', '+971')
+        ->set('phone_number', '501112223')
+        ->set('city', 'Dubai')
+        ->set('profession', 'Team Leader')
+        ->set('company_name', 'Skyline Retail')
+        ->set('profile_headline', 'Building a premium customer portfolio')
+        ->set('bio', 'Professional profile bio')
         ->call('updateProfileInformation');
 
     $response->assertHasNoErrors();
@@ -25,6 +33,9 @@ test('profile information can be updated', function () {
 
     expect($user->name)->toEqual('Test User');
     expect($user->email)->toEqual('test@example.com');
+    expect($user->country_code)->toEqual('AE');
+    expect($user->phone_number)->toEqual('501112223');
+    expect($user->profile_headline)->toEqual('Building a premium customer portfolio');
     expect($user->email_verified_at)->toBeNull();
 });
 

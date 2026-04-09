@@ -28,6 +28,9 @@
                         <div class="space-y-2">
                             <p class="text-lg font-semibold text-zinc-950 dark:text-white">{{ $withdrawal->user->name }}</p>
                             <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ '@'.$withdrawal->user->username }} • {{ $withdrawal->payment_method }}</p>
+                            @if ($withdrawal->paymentMethod)
+                                <p class="text-xs uppercase tracking-[0.2em] text-zinc-400">{{ $withdrawal->paymentMethod->type_label }} • {{ $withdrawal->paymentMethod->country_label }}</p>
+                            @endif
                             <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $withdrawal->account_details }}</p>
                             @if ($withdrawal->note)
                                 <p class="text-sm text-zinc-600 dark:text-zinc-300">Member note: {{ $withdrawal->note }}</p>
