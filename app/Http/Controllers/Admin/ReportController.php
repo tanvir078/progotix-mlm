@@ -34,7 +34,13 @@ class ReportController extends Controller
             'totals' => [
                 'members' => User::query()->where('is_admin', false)->count(),
                 'binary_nodes' => User::query()->whereNotNull('binary_parent_id')->count(),
-                'team_commission' => (float) MlmTransaction::query()->where('type', MlmTransaction::TYPE_LEVEL_BONUS)->sum('amount'),
+                'team_commission' => (float) MlmTransaction::query()
+                    ->where('direction', 'credit')
+                    ->whereIn('type', [
+                        MlmTransaction::TYPE_DIRECT_BONUS,
+                        MlmTransaction::TYPE_LEVEL_BONUS,
+                        MlmTransaction::TYPE_TEAM_SALES_BONUS,
+                    ])->sum('amount'),
                 'binary_bonus_paid' => (float) MlmTransaction::query()->where('type', MlmTransaction::TYPE_BINARY_BONUS)->sum('amount'),
                 'withdrawal_approved' => (float) MlmWithdrawalRequest::query()->where('status', MlmWithdrawalRequest::STATUS_APPROVED)->sum('amount'),
                 'carry_forward' => (float) MlmBinaryLedger::query()->sum(DB::raw('left_carry + right_carry')),
